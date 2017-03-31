@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!--
+Grid lines: https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218
+-->
+<style>
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: auto;
+  position: relative;
+  width: 900px;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+div.names_buttons {
+  position: fixed;
+  top: 50px;
+  right: 50px;
+}
+
+div.names_buttons div {
+  opacity: 0.3;
+  padding: 3px;
+  margin: 7px;
+}
+
+.grid line {
+  stroke: lightgrey;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
+
+.grid path {
+  stroke-width: 0;
+}
+
+</style>
+
+<script src="//d3js.org/d3.v4.min.js"></script>
+
+<body>
+<script type="text/javascript">
+"use strict";
+var margin = {top: 20, right: 100, bottom: 30, left: 50},
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var cause = "Prostate cancer",
+    parseYear = d3.timeParse("%Y");
+
+var x = d3.scaleTime()
+    .range([0, width]);
+
+var y = d3.scaleLinear()
+    .range([height, 0]);
+
+var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+var line = d3.line()
+    .curve(d3.curveBasis)
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d[cause]); });
+
+d3.select("body").append("h2")
+    .text("Top 10 Causes of Death");
+d3.select("body").append("h3")
+    .text("#10: " + cause);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("death_data_cause_cols.csv", type, function(error, data) {
+  if (error) throw error;
+
+  var causes = data.columns.slice(1).map(function(id) {
+    return {
+      id: id,
+      values: data.map(function(d) {
+        return {year: d.year, deaths: d[id]};
+      }),
+      total_deaths: d3.sum(data, function(d) { return d[id]; })
+    };
+  });
+  causes.sort(function(a, b) {
+    return d3.ascending(a.total_deaths, b.total_deaths);
+  });
+
+  var cause_names = causes.map(function(d) { return d.id; });
+
+  cause = cause_names[0];
+
+  x.domain([data[0].year, data[data.length - 1].year]);
+  y.domain(d3.extent(data, function(d) { return d[cause]; }));
+  colors.domain(cause_names);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(d3.axisLeft(y))
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", "0.71em")
+      .attr("fill", "#000")
+      .text("Deaths");
+
+  svg.append("g")
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x).tickSize(-height).tickFormat(""));
+
+  svg.append("g")
+      .attr("class", "grid ygrid")
+      .call(d3.axisLeft(y).tickSize(-width).tickFormat(""));
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", line)
+      .style("stroke", colors(cause));
+
+  svg.append("text")
+      .datum(data[data.length - 1])
+      .attr("class", "label")
+      .attr("transform", transform)
+      .attr("x", 3)
+      .attr("dy", ".35em")
+      .text(cause);
+
+  function update(cause, cause_idx) {
+  var cause_num = 10 - cause_idx;
+  // stretch line to new cause
+  var t0 = svg.transition().duration(1000);
+  t0.selectAll(".line")
+      .attr("d", line)
+      .style("stroke", colors(cause));
+  t0.selectAll(".label")
+      .attr("transform", transform)
+      .text(cause);
+
+  // reset the y-axis and scaling
+  y.domain(d3.extent(data, function(d) { return d[cause]; }));
+  var t1 = t0.transition();
+  t1.selectAll(".ygrid")
+      .call(d3.axisLeft(y).tickSize(-width).tickFormat(""));
+  t1.selectAll(".line")
+      .attr("d", line);
+  t1.selectAll(".label")
+      .attr("transform", transform);
+  t1.selectAll(".y.axis")
+      .call(d3.axisLeft(y));
+  d3.select("h3")
+      .text("#" + cause_num + ": " + cause);
+  }
+
+  var cause_idx = 1; // first cause is already displayed
+  var interval = setInterval(function() {
+    cause = cause_names[cause_idx];
+    update(cause, cause_idx);
+    cause_idx++;
+
+    if (cause_idx >= cause_names.length) {
+      clearInterval(interval);
+
+      var buttons = d3.select("body").append("div")
+          .attr("class", "names_buttons")
+        .selectAll("div")
+          .data(cause_names)
+        .enter().append("div")
+          .text(function(d) { return d; })
+          .style("color", function(d) { return colors(d); })
+          .attr("id", function(d) { return d.split(' ')[0]; });
+
+      // make sure the initial cause is highlighted
+      d3.select("#" + cause.split(' ')[0])
+          .style("opacity", 1.0);
+
+      buttons.on("click", function(d, i) {
+        d3.select(".names_buttons").selectAll("div")
+            .transition().duration(500)
+            .style("opacity", 0.3);
+
+        d3.select(this)
+            .transition().duration(500)
+            .style("opacity", 1.0);
+
+        cause = d;
+        update(cause, i);
+      });
+      buttons.on("mouseover", function(d) {
+        d3.select(this).style("cursor", "pointer");
+      });
+      buttons.on("mouseout", function(d) {
+        d3.select(this).style("cursor", "default");
+      });
+    }
+  }, 3000); // end interval (3s)
+
+  function transform(d) {
+    return "translate(" + x(d.year) + "," + y(d[cause]) + ")";
+  }
+});
+
+function type(d, _, columns) {
+  d.year = parseYear(d.year);
+  for (var i = 1; i < columns.length; ++i)
+    d[columns[i]] = +d[columns[i]];
+  return d;
+}
+
+</script>
+
+<em>Data Source:</em> Centers for Disease Control and Prevention,
+National Center for Health Statistics. Compressed Mortality File 1999-2014
+on CDC WONDER Online Database, released December 2015. Data are from the
+Compressed Mortality File 1999-2014 Series 20 No. 2T, 2015, as compiled from
+data provided by the 57 vital statistics jurisdictions through the Vital
+Statistics Cooperative Program. Accessed at
+<a href="http://wonder.cdc.gov/cmf-icd10.html">
+http://wonder.cdc.gov/cmf-icd10.html</a> on Dec 1, 2016 12:04:51 AM.
+
+</body>
