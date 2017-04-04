@@ -37,21 +37,21 @@ On the Udacity Data Analyst Nanodegree forums, I received
 
 On the Udacity Data Analyst Nanodegree Google+ group, I received the following:
 
-Khaled Salah:
+#### Khaled Salah:
 > hello john,  I usually don't comment on visualization but I really like yours, your color choices, data choices and the way the axes range changes between each data. But there are two things that bothered me, 
 > 1- the animation at the first, goes two fast + it run when I open the graph which gives no time to understand what the data are about or what the axes have inside, may be alittle  slower animation with some popup messages to explain your graph.
 > 2- the second point it's not important but I want to say it anyway, the range of the Y-axis for some diseases it's wide but for others it's small  just like "Breast Cancer" it goes from 41K to 42K, so the graph may show false expectation for the rises and falls. 
 >
 > but at all it's really a good graph which gives me new information about number of deaths for different diseases over time, well done (Y)
 
-Luiz Gustavo Schiller:
+#### Luiz Gustavo Schiller:
 > Hi John, I really liked your visualization. Nice colors and animations. Very good storytelling. The only thing I would suggest is to sort the diseases by the most recent death rate. This way the rightmost end of the chart will not decrease from breast to colon cancer for example.
 > Keep up the good work!
 
-Kurt Jonske:
+#### Kurt Jonske:
 > Great work, similar to Khaled the most pressing thing i'd rec is to make sure your y-axis is similar or you point out % change since inception.
 
-Kevin Vo:
+#### Kevin Vo:
 > Hi John, your visualization is great.
 > Some feedbacks:
 > - I notice that the legend is very far on the right of the window. I suggest you create some div to add your svg and legend in a same place. ( See the attached photo)
@@ -89,3 +89,12 @@ to way off to the right or overlapping.
 
 #### d3noob
 - [Simple graph with grid lines in v4](https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218)
+
+#### [CDC Wonder Database](http://wonder.cdc.gov/cmf-icd10.html)
+Centers for Disease Control and Prevention,
+National Center for Health Statistics. Compressed Mortality File 1999-2014
+on CDC WONDER Online Database, released December 2015. Data are from the
+Compressed Mortality File 1999-2014 Series 20 No. 2T, 2015, as compiled from
+data provided by the 57 vital statistics jurisdictions through the Vital
+Statistics Cooperative Program. Accessed at
+[http://wonder.cdc.gov/cmf-icd10.html](http://wonder.cdc.gov/cmf-icd10.html) on Dec 1, 2016 12:04:51 AM.
