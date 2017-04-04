@@ -6,12 +6,21 @@
 Grid lines: https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218
 -->
 <!--
-    Second updated version based on feedback.
+    Updated version based on feedback.
 
-    1. I added divs so that the legend comes out next to the chart as opposed
-    to way off to the right or overlapping.
+    1. I fixed the bottom of the y-axis to zero so that the data doesn't look
+    too misrepresented between causes. (I kept the upper limit dynamic because
+    I felt that seeing the growth in scale from one cause to the next makes
+    for a more memorable visualization).
+    2. I slowed down the animation so that you can read the labels and see
+    what's going on before it switches to the next cause. (If you think it's
+    still too fast, let me know).
+    3. I expanded the summary to highlight a few specifics and explain how to
+    use the interaction (although, hopefully it is self-evident).
+    4. I sorted the causes by number of deaths on the last year as opposed to
+    total number of deaths like I had originally.
 
-    Previous versions can be found at index1.html and index2.html.
+    Original version can be found at index1.html.
 -->
 <style>
 
@@ -33,16 +42,6 @@ text {
   shape-rendering: crispEdges;
 }
 
-#dmain {
-  display: table;
-}
-
-#dsvg, #dlegend {
-  display: table-cell;
-  padding: 2px 6px;
-  vertical-align: top;
-}
-
 .x.axis path {
   display: none;
 }
@@ -50,6 +49,12 @@ text {
 .line {
   fill: none;
   stroke-width: 1.5px;
+}
+
+div.names_buttons {
+  position: fixed;
+  top: 50px;
+  right: 50px;
 }
 
 div.names_buttons div {
@@ -77,9 +82,8 @@ div.names_buttons div {
 <script type="text/javascript">
 "use strict";
 var margin = {top: 20, right: 100, bottom: 30, left: 50},
-    width = 800 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom,
-    legend_width = 200;
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
 var cause = "Prostate cancer",
     parseYear = d3.timeParse("%Y");
@@ -102,20 +106,7 @@ d3.select("body").append("h2")
 d3.select("body").append("h3")
     .text("#10: " + cause);
 
-var maindiv = d3.select("body").append("div")
-    .attr("id", "dmain")
-    .attr("width", width + margin.left + margin.right + legend_width + 50);
-
-var svgdiv = maindiv.append("div")
-    .attr("id", "dsvg")
-    .attr("align", "left");
-
-var legenddiv = maindiv.append("div")
-    .attr("align", "right")
-    .attr("id", "dlegend")
-    .attr("width", legend_width);
-
-var svg = svgdiv.append("svg")
+var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -228,7 +219,7 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
     if (cause_idx >= cause_names.length) {
       clearInterval(interval);
 
-      var buttons = legenddiv.append("div")
+      var buttons = d3.select("body").append("div")
           .attr("class", "names_buttons")
         .selectAll("div")
           .data(cause_names)

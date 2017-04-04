@@ -5,14 +5,6 @@
 <!--
 Grid lines: https://bl.ocks.org/d3noob/c506ac45617cf9ed39337f99f8511218
 -->
-<!--
-    Second updated version based on feedback.
-
-    1. I added divs so that the legend comes out next to the chart as opposed
-    to way off to the right or overlapping.
-
-    Previous versions can be found at index1.html and index2.html.
--->
 <style>
 
 body {
@@ -33,16 +25,6 @@ text {
   shape-rendering: crispEdges;
 }
 
-#dmain {
-  display: table;
-}
-
-#dsvg, #dlegend {
-  display: table-cell;
-  padding: 2px 6px;
-  vertical-align: top;
-}
-
 .x.axis path {
   display: none;
 }
@@ -50,6 +32,12 @@ text {
 .line {
   fill: none;
   stroke-width: 1.5px;
+}
+
+div.names_buttons {
+  position: fixed;
+  top: 50px;
+  right: 50px;
 }
 
 div.names_buttons div {
@@ -77,9 +65,8 @@ div.names_buttons div {
 <script type="text/javascript">
 "use strict";
 var margin = {top: 20, right: 100, bottom: 30, left: 50},
-    width = 800 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom,
-    legend_width = 200;
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
 var cause = "Prostate cancer",
     parseYear = d3.timeParse("%Y");
@@ -102,20 +89,7 @@ d3.select("body").append("h2")
 d3.select("body").append("h3")
     .text("#10: " + cause);
 
-var maindiv = d3.select("body").append("div")
-    .attr("id", "dmain")
-    .attr("width", width + margin.left + margin.right + legend_width + 50);
-
-var svgdiv = maindiv.append("div")
-    .attr("id", "dsvg")
-    .attr("align", "left");
-
-var legenddiv = maindiv.append("div")
-    .attr("align", "right")
-    .attr("id", "dlegend")
-    .attr("width", legend_width);
-
-var svg = svgdiv.append("svg")
+var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
@@ -133,18 +107,8 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
       total_deaths: d3.sum(data, function(d) { return d[id]; })
     };
   });
-  // sort by total deaths
-/*
   causes.sort(function(a, b) {
     return d3.ascending(a.total_deaths, b.total_deaths);
-  });
-*/
-  // sort by deaths in last year
-  causes.sort(function(a, b) {
-    return d3.ascending(
-      a.values[a.values.length - 1].deaths,
-      b.values[b.values.length - 1].deaths
-    )
   });
 
   var cause_names = causes.map(function(d) { return d.id; });
@@ -152,7 +116,7 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
   cause = cause_names[0];
 
   x.domain([data[0].year, data[data.length - 1].year]);
-  y.domain([0, d3.max(data, function(d) { return d[cause]; })]);
+  y.domain(d3.extent(data, function(d) { return d[cause]; }));
   colors.domain(cause_names);
 
   svg.append("g")
@@ -205,7 +169,7 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
       .text(cause);
 
   // reset the y-axis and scaling
-  y.domain([0, d3.max(data, function(d) { return d[cause]; })]);
+  y.domain(d3.extent(data, function(d) { return d[cause]; }));
   var t1 = t0.transition();
   t1.selectAll(".ygrid")
       .call(d3.axisLeft(y).tickSize(-width).tickFormat(""));
@@ -228,7 +192,7 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
     if (cause_idx >= cause_names.length) {
       clearInterval(interval);
 
-      var buttons = legenddiv.append("div")
+      var buttons = d3.select("body").append("div")
           .attr("class", "names_buttons")
         .selectAll("div")
           .data(cause_names)
@@ -260,7 +224,7 @@ d3.csv("death_data_cause_cols.csv", type, function(error, data) {
         d3.select(this).style("cursor", "default");
       });
     }
-  }, 4000); // end interval (4s)
+  }, 3000); // end interval (3s)
 
   function transform(d) {
     return "translate(" + x(d.year) + "," + y(d[cause]) + ")";
@@ -284,11 +248,7 @@ may surprise you to know that heart disease comes in at number one and kills
 about ten times more people every year than breast cancer. The goal of this
 visualization is to show the top ten causes of death so as to bring attention
 to some of the ones that you might not have suspected and to show the relative
-severity of each cause as shown by the number of deaths per year. It is also
-interesting to note the changes over time: Alzheimer's deaths are increasing,
-but heart disease deaths dropped by more than 100,000 per year! After the
-animation finishes cycling through the top 10, explore on your own by clicking
-on the disease names on the right.
+severity of each cause as shown by the number of deaths per year.
 </p>
 
 <p>
